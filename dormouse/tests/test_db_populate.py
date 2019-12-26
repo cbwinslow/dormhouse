@@ -77,7 +77,7 @@ class TestPlayerBPopulation(unittest.TestCase):
     def test_player_day_stats(self):
         populate_player_game_stats(2019, 2019, session=self.session)
         self.assertTrue(self.session.query(PlayerGameStats.UID).count(), 72879)
-        # populate_player_game_stats(2017, 2018, session=self.session)
+        populate_player_game_stats(2018, 2019, session=self.session)
 
 
 # @unittest.skip("")
