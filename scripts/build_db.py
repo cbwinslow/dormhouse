@@ -8,7 +8,12 @@ import sys
 this_file = os.path.realpath(__file__)
 sys.path.insert(1, os.path.realpath(os.path.join(this_file, "../..")))
 
-from dormouse.tables.dbGame import populate_game_log, GameLog
+from dormouse.tables.dbGame import (
+    populate_game_log,
+    GameLog,
+    populate_team_roster,
+    TeamRoster,
+)
 from dormouse.tables.dbPerson import (
     populate_player_lu,
     populate_player_game_stats,
@@ -41,6 +46,7 @@ def _main(args):
     PlayerLookup.__table__.create(bind=engine, checkfirst=True)
     PlayerGameStats.__table__.create(bind=engine, checkfirst=True)
     GameLog.__table__.create(bind=engine, checkfirst=True)
+    TeamRoster.__table__.create(bind=engine, checkfirst=True)
 
     # populate player lookup table first
     # this is an 'all or nothing' deal
@@ -67,6 +73,12 @@ def _main(args):
     if args.all or args.retrosplits:
         print("Populating individual player game by game stats")
         populate_player_game_stats(_start, _end, session)
+
+    if args.all or args.rosters:
+        print("Populating Team Rosters")
+        for season in range(_start, _end + 1):
+            populate_team_roster(season, session)
+
     # Commit and close
     session.commit()
     session.close()
@@ -142,6 +154,13 @@ if __name__ == "__main__":
         metavar="retrosplits",
         type=bool,
         help="Fetch retrosplits day-by-day data",
+        default=False,
+    )
+    parser.add_argument(
+        "--rosters",
+        metavar="rosters",
+        type=bool,
+        help="Fetch retrosplits team roster data",
         default=False,
     )
 
