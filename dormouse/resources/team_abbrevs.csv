@@ -1,0 +1,31 @@
+﻿name,league,mlbam_abbrev,rs_abbrev,division
+Arizone Diamonbacks,NL,ARI,ARI,NLW
+Tampa Bay Rays,AL,TBA,TB,ALE
+St. Louis Cardinals,NL,SLN,STL,NLC
+Baltimore Orioles,AL,BAL,BAL,ALE
+Houston Atros,AL,HOU,HOU,ALW
+Los Angeles Dodgers,NL,LAN,LAD,NLW
+Boston Red Sox,AL,BOS,BOS,ALE
+Cincinati Reds,NL,CIN,CIN,NLC
+Washington Nationals,NL,WAS,WSH,NLE
+Oakland Athleticss,AL,OAK,OAK,ALW
+Minnisota Twins,AL,MIN,MIN,ALC
+Milwauke Brewers,NL,MIL,MIL,NLC
+Texas Rangers,AL,TEX,TEX,ALW
+New York Mets,NL,NYN,NYM,NLE
+Chicago White Sox,AL,CHA,CWS,ALC
+Philidelphia Phillies,NL,PHI,PHI,NLE
+Los Angeles Angels,AL,ANA,LAA,ALW
+San Diego Padres,NL,SDN,SD,NLW
+Colorado Rockies,NL,COL,COL,NLW
+Detroit Tigers,AL,DET,DET,ALC
+Pittsburgh Pirates,NL,PIT,PIT,NLC
+New York Yankees,AL,NYA,NYY,ALE
+Kansas City Royals,AL,KCA,KC,ALC
+Chicago Cubs,NL,CHN,CHC,NLC
+Seattle Mariners,AL,SEA,SEA,ALW
+San Francisco Giants,NL,SFN,SF,NLW
+Toronto Blue Jays,AL,TOR,TOR,ALE
+Cleveland Indians,AL,CLE,CLE,ALC
+Miami Marlins,NL,MIA,MIA,NLE
+Atlanta Braves,NL,ATL,ATL,NLE

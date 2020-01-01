@@ -27,8 +27,10 @@ from dormouse.tables.dbPerson import (
     populate_statcast,
 )
 
+from dormouse.tables.dbMeta import populate_team_data, Teams
 
-# @unittest.skip("")
+
+@unittest.skip("")
 class TestPlayerBPopulation(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -86,7 +88,7 @@ class TestPlayerBPopulation(unittest.TestCase):
         populate_player_game_stats(2018, 2019, session=self.session)
 
 
-# @unittest.skip("")
+@unittest.skip("")
 class TestGameDBPopulate(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -121,6 +123,33 @@ class TestGameDBPopulate(unittest.TestCase):
     def test_line_score_parse(self):
         # TODO: Game log line score parsing
         pass
+
+
+class TestMetaDBPopulate(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        try:
+            os.remove("test3.db")
+        except:  # This is a hacky way to do this
+            pass
+
+        engine = create_engine("sqlite:///test3.db", echo=False)
+        Session = sessionmaker(bind=engine)
+        Session.configure(bind=engine)
+        Teams.__table__.create(bind=engine, checkfirst=True)
+        self.session = Session()
+        self.file_dir = os.path.realpath(__file__)
+
+    @classmethod
+    def tearDownClass(self):
+        self.session.commit()
+        self.session.close()
+
+    def test_teams_populate(self):
+        populate_team_data(self.session)
+        qry = self.session.query(Teams)
+        df = pd.read_sql(qry.statement, self.session.bind)
+        self.assertTrue(len(df.dropna(how="any", axis=0)) == len(df))
 
 
 if __name__ == "__main__":
