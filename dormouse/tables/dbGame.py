@@ -1,12 +1,12 @@
+import hashlib
 import io
+from datetime import datetime
 from zipfile import ZipFile
 
 import pandas as pd
 import requests
-from sqlalchemy import Column, Date, DateTime, Float, Integer, String, Sequence
+from sqlalchemy import Column, Date, DateTime, Float, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
-from yaml import Loader, load
-from datetime import datetime
 
 from dormouse.extras.utils import clean_db_col_names, native_dtype
 
@@ -226,6 +226,10 @@ def populate_team_roster(year, session, auto_commit=True):
 
     team is the 3 letter RS team code
     """
+
+    query = session.query(TeamRoster.UID).all()
+    UIDs = [x[0] for x in query]
+
     roster_cols = [
         "rs_id",
         "name_first",
@@ -239,6 +243,7 @@ def populate_team_roster(year, session, auto_commit=True):
     res = requests.get(base_url.format(str(year)))
     data = _unzip_content(res.content)
     file_list = data.namelist()
+
     for f_name in [x for x in file_list if x[-3:] == "ROS"]:
         df = pd.read_csv(
             io.BytesIO(data.read(f_name)), header=None, names=roster_cols
@@ -246,7 +251,9 @@ def populate_team_roster(year, session, auto_commit=True):
         df["year"] = year
         for _, row in df.iterrows():
             roster = TeamRoster(row)
-            session.add(roster)
+            if roster.UID not in UIDs:
+                session.add(roster)
+                UIDs.append(roster.UID)
 
     if auto_commit:
         session.commit()
@@ -455,7 +462,7 @@ class TeamRoster(declarative_base()):
     """
 
     __tablename__ = "rs_team_rosters"
-    id = Column(Integer, Sequence("roster_id_seq"), primary_key=True)
+    UID = Column(String(32), index=True, primary_key=True, unique=True)
     team = Column(String(3))
     year = Column(Integer)
     rs_id = Column(String(8))
@@ -469,4 +476,24 @@ class TeamRoster(declarative_base()):
         for key, value in roster_row.items():
             if key is not None and value is not None:
                 setattr(self, clean_db_col_names(key), native_dtype(value))
+        self.UID = self._get_uid()
 
+    def _get_uid(self):
+        hash_str = (
+            "".join(
+                [
+                    str(x)
+                    for x in [
+                        self.team,
+                        self.year,
+                        self.name_first,
+                        self.name_last,
+                        self.bats,
+                        self.throws,
+                    ]
+                ]
+            )
+            .replace(".", "")
+            .encode("utf-8")
+        )
+        return hashlib.md5(hash_str).hexdigest()

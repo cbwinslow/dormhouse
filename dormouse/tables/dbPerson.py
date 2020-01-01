@@ -6,13 +6,13 @@ import requests
 from sqlalchemy import Column, DateTime, Float, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 
+from dormouse.extras.pybb import retro_day_stats, single_player_batting_stats
 from dormouse.extras.utils import (
     clean_db_col_names,
     get_col_min_max,
     native_dtype,
     space_out_req,
 )
-from dormouse.extras.pybb import single_player_batting_stats, retro_day_stats
 from pybaseball import statcast
 from pybaseball.playerid_lookup import get_lookup_table
 
