@@ -98,7 +98,7 @@ def populate_player_game_stats(
         if player.UID not in UIDs:
             UIDs.append(player.UID)
             session.add(player)
-            print(f"{player.UID}")
+            # print(f"{player.UID}")
 
     if auto_commit:
         session.commit()

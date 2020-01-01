@@ -11,6 +11,15 @@ from datetime import datetime
 from dormouse.extras.utils import clean_db_col_names, native_dtype
 
 
+def _unzip_content(content) -> ZipFile:
+    """
+    Unzips the byte content and returns a zipfile object
+    """
+    f = io.BytesIO(content)
+    data = ZipFile(f)
+    return data
+
+
 def populate_game_log(year, game_type, session, auto_commit=True):
     """
     Populates the game log table with data from the given year
@@ -183,18 +192,6 @@ def populate_game_log(year, game_type, session, auto_commit=True):
         "AcquisitionInformation",
     ]
 
-    def _unzip_content(content):
-        """
-        Retrosheet uses zip, not gzip. So we have to decode the byte stream ourselves
-
-        returns text from resonse
-
-        TODO: Maybe make this a generator function??
-        """
-        f = io.BytesIO(content)
-        data = ZipFile(f)
-        return data.read(data.namelist()[0])
-
     def _fix_date(dt_string):
         """
         Convert YYYYMMDD integer to datetime object
@@ -208,8 +205,9 @@ def populate_game_log(year, game_type, session, auto_commit=True):
 
     url = "https://www.retrosheet.org/gamelogs/gl{}.zip".format(year)
     res = requests.get(url)
-    txt = _unzip_content(res.content)
-    df = pd.read_csv(io.BytesIO(txt), header=None, names=rs_columns)
+    data = _unzip_content(res.content)
+    rs_file = data.read(data.namelist()[0])
+    df = pd.read_csv(io.BytesIO(rs_file), header=None, names=rs_columns)
 
     # Fix game date columns
     df["Date"] = df["Date"].apply(_fix_date)
@@ -217,6 +215,38 @@ def populate_game_log(year, game_type, session, auto_commit=True):
     for _, row in df.iterrows():
         game = GameLog(row)
         session.add(game)
+
+    if auto_commit:
+        session.commit()
+
+
+def populate_team_roster(year, session, auto_commit=True):
+    """
+    Populates the team roster table with data from team for the season year
+
+    team is the 3 letter RS team code
+    """
+    roster_cols = [
+        "rs_id",
+        "name_first",
+        "name_last",
+        "bats",
+        "throws",
+        "team",
+        "position",
+    ]
+    base_url = "https://www.retrosheet.org/events/{}eve.zip"
+    res = requests.get(base_url.format(str(year)))
+    data = _unzip_content(res.content)
+    file_list = data.namelist()
+    for f_name in [x for x in file_list if x[-3:] == "ROS"]:
+        df = pd.read_csv(
+            io.BytesIO(data.read(f_name)), header=None, names=roster_cols
+        )
+        df["year"] = year
+        for _, row in df.iterrows():
+            roster = TeamRoster(row)
+            session.add(roster)
 
     if auto_commit:
         session.commit()
@@ -417,3 +447,26 @@ class GameLog(declarative_base()):
         for key, value in single_game_er.items():
             if key is not None and value is not None:
                 setattr(self, clean_db_col_names(key), native_dtype(value))
+
+
+class TeamRoster(declarative_base()):
+    """
+    Table for storing current and historic roster data
+    """
+
+    __tablename__ = "rs_team_rosters"
+    id = Column(Integer, Sequence("roster_id_seq"), primary_key=True)
+    team = Column(String(3))
+    year = Column(Integer)
+    rs_id = Column(String(8))
+    name_first = Column(String(50))
+    name_last = Column(String(50))
+    position = Column(String(3))
+    bats = Column(String(1))
+    throws = Column(String(1))
+
+    def __init__(self, roster_row):
+        for key, value in roster_row.items():
+            if key is not None and value is not None:
+                setattr(self, clean_db_col_names(key), native_dtype(value))
+

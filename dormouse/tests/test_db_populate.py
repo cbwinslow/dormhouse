@@ -2,6 +2,9 @@ import datetime
 import os
 import sys
 
+this_file = os.path.realpath(__file__)
+sys.path.insert(1, os.path.realpath(os.path.join(this_file, "../../..")))
+
 # from sqlalchemy.ext.declarative import declarative_base
 import unittest
 
@@ -9,20 +12,23 @@ import pandas as pd
 from sqlalchemy import create_engine, distinct, func
 from sqlalchemy.orm import sessionmaker
 
-this_file = os.path.realpath(__file__)
-sys.path.insert(1, os.path.realpath(os.path.join(this_file, "../../..")))
-
-from dormouse.tables.dbPerson import (
-    StatcastPitching,
-    populate_statcast,
-    PlayerLookup,
-    populate_player_lu,
-    PlayerGameStats,
-    populate_player_game_stats,
+from dormouse.tables.dbGame import (
+    GameLog,
+    TeamRoster,
+    populate_game_log,
+    populate_team_roster,
 )
-from dormouse.tables.dbGame import GameLog, populate_game_log
+from dormouse.tables.dbPerson import (
+    PlayerGameStats,
+    PlayerLookup,
+    StatcastPitching,
+    populate_player_game_stats,
+    populate_player_lu,
+    populate_statcast,
+)
 
 
+# @unittest.skip("")
 class TestPlayerBPopulation(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -94,6 +100,7 @@ class TestGameDBPopulate(unittest.TestCase):
         Session.configure(bind=engine)
         # Base = declarative_base()
         GameLog.__table__.create(bind=engine, checkfirst=True)
+        TeamRoster.__table__.create(bind=engine, checkfirst=True)
         self.session = Session()
         self.file_dir = os.path.realpath(__file__)
 
@@ -104,6 +111,11 @@ class TestGameDBPopulate(unittest.TestCase):
 
     def test_rs_game_log(self):
         populate_game_log(2019, "rs", self.session)
+        pass
+
+    def test_roster_populate(self):
+        populate_team_roster(2019, self.session)
+        populate_team_roster(2017, self.session)
         pass
 
     def test_line_score_parse(self):
