@@ -23,6 +23,8 @@ from dormouse.tables.dbPerson import (
     StatcastPitching,
 )
 
+from dormouse.tables.dbMeta import populate_team_data, Teams
+
 from sqlalchemy import create_engine, distinct, func
 from sqlalchemy.orm import sessionmaker
 import datetime
@@ -47,6 +49,7 @@ def _main(args):
     PlayerGameStats.__table__.create(bind=engine, checkfirst=True)
     GameLog.__table__.create(bind=engine, checkfirst=True)
     TeamRoster.__table__.create(bind=engine, checkfirst=True)
+    Teams.__table__.create(bind=engine, checkfirst=True)
 
     # populate player lookup table first
     # this is an 'all or nothing' deal
@@ -78,6 +81,10 @@ def _main(args):
         print("Populating Team Rosters")
         for season in range(_start, _end + 1):
             populate_team_roster(season, session)
+
+    if args.all or args.teams:
+        print("Populating team name and abbrev. lookup")
+        populate_team_data(session)
 
     # Commit and close
     session.commit()
@@ -161,6 +168,14 @@ if __name__ == "__main__":
         metavar="rosters",
         type=bool,
         help="Fetch retrosplits team roster data",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--teams",
+        metavar="teams",
+        type=bool,
+        help="Fetch team lookupdata",
         default=False,
     )
 
