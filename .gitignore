@@ -6,3 +6,6 @@ tmp/
 *.egg-info
 *tmp*
 *.xlsx
+Dockerfile
+*.swp
+*.vim/

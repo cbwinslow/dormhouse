@@ -1,0 +1,7 @@
+pandas
+numpy
+pandas
+pybaseball
+beautifulsoup4
+sqlalchemy
+
