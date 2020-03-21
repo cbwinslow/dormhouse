@@ -215,6 +215,10 @@ def populate_game_log(year, game_type, session, auto_commit=True):
     for _, row in df.iterrows():
         game = GameLog(row)
         session.add(game)
+        hlu = TeamLineup(game, "Home")
+        vlu = TeamLineup(game, "Visiting")
+        session.add(hlu)
+        session.add(vlu)
 
     if auto_commit:
         session.commit()
@@ -454,6 +458,90 @@ class GameLog(declarative_base()):
         for key, value in single_game_er.items():
             if key is not None and value is not None:
                 setattr(self, clean_db_col_names(key), native_dtype(value))
+
+
+class TeamLineup(declarative_base()):
+    """Derivative table to store only linuep data. 
+    Relies on GameLog to properly function
+
+    UID is md5 hash of GameLog.Date and GameLog.GameSeriesNumber and self.team
+    """
+
+    __tablename__ = "rs_team_lineups"
+    UID = Column(String(32), index=True, primary_key=True, unique=True)
+    parkid = Column(String(5))
+    team = String(3)
+    StartingPID = Column(String(8))
+    Batter1ID = Column(String(8))
+    Batter1Pos = Column(Integer)
+    Batter2ID = Column(String(8))
+    Batter2Pos = Column(Integer)
+    Batter3ID = Column(String(8))
+    Batter3Pos = Column(Integer)
+    Batter4ID = Column(String(8))
+    Batter4Pos = Column(Integer)
+    Batter5ID = Column(String(8))
+    Batter5Pos = Column(Integer)
+    Batter6ID = Column(String(8))
+    Batter6Pos = Column(Integer)
+    Batter7ID = Column(String(8))
+    Batter7Pos = Column(Integer)
+    Batter8ID = Column(String(8))
+    Batter8Pos = Column(Integer)
+    Batter9ID = Column(String(8))
+    Batter9Pos = Column(Integer)
+
+    def __init__(self, glog: GameLog, side: str):
+
+        self._glog = glog
+        if side not in ["Home", "Visiting"]:
+            raise ValueError(f"{side} not recognized as a valid parameter")
+        else:
+            self.side = side
+
+        # just brute force this for now
+        self.parkid = glog.ParkID
+        self.team = glog.__dict__["{}Team".format(self.side)]
+
+        self.StartingPID = self._get_prop("StartingPID")
+        self.Batter1ID = self._get_prop("Batter1ID")
+        self.Batter1Pos = self._get_prop("Batter1Pos")
+        self.Batter2ID = self._get_prop("Batter2ID")
+        self.Batter2Pos = self._get_prop("Batter2Pos")
+        self.Batter3ID = self._get_prop("Batter9Pos")
+        self.Batter3Pos = self._get_prop("Batter9Pos")
+        self.Batter4ID = self._get_prop("Batter4ID")
+        self.Batter4Pos = self._get_prop("Batter4Pos")
+        self.Batter5ID = self._get_prop("Batter5ID")
+        self.Batter5Pos = self._get_prop("Batter5Pos")
+        self.Batter6ID = self._get_prop("Batter6ID")
+        self.Batter6Pos = self._get_prop("Batter9Pos")
+        self.Batter7ID = self._get_prop("Batter7ID")
+        self.Batter7Pos = self._get_prop("Batter7Pos")
+        self.Batter8ID = self._get_prop("Batter8ID")
+        self.Batter8Pos = self._get_prop("Batter8Pos")
+        self.Batter9ID = self._get_prop("Batter9ID")
+        self.Batter9Pos = self._get_prop("Batter9Pos")
+
+        self.UID = self.get_uid()
+
+    def get_uid(self):
+
+        hash_str = "".join(
+            [
+                str(x)
+                for x in [
+                    self._glog.Date,
+                    self._glog.GameSeriesNumber,
+                    self.team,
+                ]
+            ]
+        ).encode("utf-8")
+
+        return hashlib.md5(hash_str).hexdigest()
+
+    def _get_prop(self, prop_string):
+        return self._glog.__dict__["{}_{}".format(self.side, prop_string)]
 
 
 class TeamRoster(declarative_base()):

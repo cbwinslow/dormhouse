@@ -9,3 +9,5 @@ tmp/
 Dockerfile
 *.swp
 *.vim/
+build/
+dist/

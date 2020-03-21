@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from dormouse.tables.dbGame import (
     GameLog,
     TeamRoster,
+    TeamLineup,
     populate_game_log,
     populate_team_roster,
 )
@@ -30,7 +31,7 @@ from dormouse.tables.dbPerson import (
 from dormouse.tables.dbMeta import populate_team_data, Teams
 
 
-@unittest.skip("")
+# @unittest.skip("")
 class TestPlayerBPopulation(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -85,10 +86,10 @@ class TestPlayerBPopulation(unittest.TestCase):
     def test_player_day_stats(self):
         populate_player_game_stats(2019, 2019, session=self.session)
         self.assertTrue(self.session.query(PlayerGameStats.UID).count(), 72879)
-        populate_player_game_stats(2018, 2019, session=self.session)
+        # populate_player_game_stats(2018, 2019, session=self.session)
 
 
-@unittest.skip("")
+# @unittest.skip("")
 class TestGameDBPopulate(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -102,6 +103,7 @@ class TestGameDBPopulate(unittest.TestCase):
         Session.configure(bind=engine)
         # Base = declarative_base()
         GameLog.__table__.create(bind=engine, checkfirst=True)
+        TeamLineup.__table__.create(bind=engine, checkfirst=True)
         TeamRoster.__table__.create(bind=engine, checkfirst=True)
         self.session = Session()
         self.file_dir = os.path.realpath(__file__)
@@ -153,4 +155,4 @@ class TestMetaDBPopulate(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
