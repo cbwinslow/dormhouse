@@ -1,8 +1,6 @@
-**
-
 # Dormouse Baseball Database
 
-Dormouse is a consolidated baseball database specifically designed for simulating baseball games at the pitch-by-pitch level. Dormouse contains table definitions and web-scraping functionality for the following data sources: 
+Dormouse is a consolidated baseball database specifically designed for simulating baseball games at the pitch-by-pitch level. Dormouse contains SQLAlchemy table definitions and web-scraping functionality for the following data sources: 
 
 - Statcast pitch data
 - Chadwick Bureau player information
