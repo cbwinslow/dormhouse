@@ -11,6 +11,7 @@ sys.path.insert(1, os.path.realpath(os.path.join(this_file, "../..")))
 from dormouse.tables.dbGame import (
     populate_game_log,
     GameLog,
+    TeamLineup,
     populate_team_roster,
     TeamRoster,
 )
@@ -50,6 +51,7 @@ def _main(args):
     GameLog.__table__.create(bind=engine, checkfirst=True)
     TeamRoster.__table__.create(bind=engine, checkfirst=True)
     Teams.__table__.create(bind=engine, checkfirst=True)
+    TeamLineup.__table__.create(bind=engine, checkfirst=True)
 
     # populate player lookup table first
     # this is an 'all or nothing' deal
