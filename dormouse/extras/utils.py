@@ -1,7 +1,11 @@
+import pandas as pd
 import numpy as np
+
 import time
 import datetime
+
 from sqlalchemy.sql import func
+from sqlalchemy import Integer
 
 
 def clean_db_col_names(name: str, rule_set={".": "_"}, replace_set=None):
@@ -64,7 +68,6 @@ def native_dtype(np_value: np.ndarray):
         try:
             val = np_value.date()
         except AttributeError:
-
             val = str(np_value)
 
     return val
@@ -84,3 +87,25 @@ def space_out_req(func):
         return func(*args, **kwargs)
 
     return wrap
+
+
+def cast_fiel_dtypes(df: pd.DataFrame, tbl) -> pd.DataFrame:
+    """
+    Cast fields that map to an int to numeric ints
+    """
+    col_names = df.columns
+    clean_names = [clean_db_col_names(x) for x in col_names]
+
+    for cname, rname in zip(clean_names, col_names):
+        try:
+            if isinstance(getattr(tbl, cname).type, Integer):
+                df[rname] = (
+                    pd.to_numeric(df[rname], errors="coerce")
+                    .fillna(0)
+                    .astype(np.int64)
+                )
+
+        except AttributeError:
+            pass
+
+    return df

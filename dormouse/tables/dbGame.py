@@ -8,7 +8,11 @@ import requests
 from sqlalchemy import Column, Date, DateTime, Float, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
 
-from dormouse.extras.utils import clean_db_col_names, native_dtype
+from dormouse.extras.utils import (
+    clean_db_col_names,
+    native_dtype,
+    cast_fiel_dtypes,
+)
 
 
 def _unzip_content(content) -> ZipFile:
@@ -208,17 +212,27 @@ def populate_game_log(year, game_type, session, auto_commit=True):
     data = _unzip_content(res.content)
     rs_file = data.read(data.namelist()[0])
     df = pd.read_csv(io.BytesIO(rs_file), header=None, names=rs_columns)
+    df = df.fillna(0)
+
+    # df = cast_fiel_dtypes(df, TeamLineup)
+    df = cast_fiel_dtypes(df, GameLog)
 
     # Fix game date columns
     df["Date"] = df["Date"].apply(_fix_date)
+
+    # Get list of UIDs in db
+    query = session.query(TeamLineup.UID).all()
+    UIDs = [x[0] for x in query]
 
     for _, row in df.iterrows():
         game = GameLog(row)
         session.add(game)
         hlu = TeamLineup(game, "Home")
         vlu = TeamLineup(game, "Visiting")
-        session.add(hlu)
-        session.add(vlu)
+        if hlu.UID not in UIDs:
+            session.add(hlu)
+        if vlu.UID not in UIDs:
+            session.add(vlu)
 
     if auto_commit:
         session.commit()
@@ -461,7 +475,7 @@ class GameLog(declarative_base()):
 
 
 class TeamLineup(declarative_base()):
-    """Derivative table to store only linuep data. 
+    """Derivative table to store only linuep data.
     Relies on GameLog to properly function
 
     UID is md5 hash of GameLog.Date and GameLog.GameSeriesNumber and self.team

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="dormouse",
-    version="0.3",
+    version="0.3.1",
     author="Sean Fischer",
     author_email="seanwfischer@gmail.com",
     url="https://www.github.com/fischersean/dormouse",

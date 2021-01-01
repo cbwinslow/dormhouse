@@ -2,9 +2,16 @@ import hashlib
 from datetime import datetime, timedelta
 
 import pandas as pd
+import numpy as np
+
 import requests
+
 from sqlalchemy import Column, DateTime, Float, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
+
+from pybaseball import statcast
+from pybaseball.playerid_lookup import get_lookup_table
+
 
 from dormouse.extras.pybb import retro_day_stats, single_player_batting_stats
 from dormouse.extras.utils import (
@@ -12,9 +19,8 @@ from dormouse.extras.utils import (
     get_col_min_max,
     native_dtype,
     space_out_req,
+    cast_fiel_dtypes,
 )
-from pybaseball import statcast
-from pybaseball.playerid_lookup import get_lookup_table
 
 
 def populate_statcast(
@@ -45,6 +51,8 @@ def populate_statcast(
     while date <= end_date:
         try:
             df = _single_day_sc(date.strftime("%Y-%m-%d"))
+            df = df.fillna(0)
+            df = cast_fiel_dtypes(df, StatcastPitching)
             for _, row in df.iterrows():
                 entry = StatcastPitching(row)
                 if entry.UID not in UIDs:
@@ -55,8 +63,13 @@ def populate_statcast(
 
         date += timedelta(days=1)
 
-    if auto_commit:
-        session.commit()
+        """
+        Since the datasets are so large (25 MB / 3 days), we need to commit
+        rows after every query. If not, we may wind up trying to add multiple
+        GB of data in one INSERT statement.
+        """
+        if auto_commit:
+            session.commit()
 
     return
 
@@ -67,6 +80,18 @@ def populate_player_lu(session, auto_commit=True):
     """
     # From pybaseball
     lu_df = get_lookup_table()
+    # covnert to correct dtypes
+    lu_df["mlb_played_last"] = (
+        pd.to_numeric(lu_df["mlb_played_last"], errors="coerce")
+        .fillna(0)
+        .astype(np.int64)
+    )
+    lu_df["mlb_played_first"] = (
+        pd.to_numeric(lu_df["mlb_played_first"], errors="coerce")
+        .fillna(0)
+        .astype(np.int64)
+    )
+
     query = session.query(PlayerLookup.key_mlbam).all()
     UIDs = [x[0] for x in query]
     for _, row in lu_df.iterrows():
@@ -90,6 +115,10 @@ def populate_player_game_stats(
     """
 
     data = retro_day_stats(start_season, end_season)
+
+    data = data.fillna(0)
+    data = cast_fiel_dtypes(data, PlayerGameStats)
+
     query = session.query(PlayerGameStats.UID).all()
     UIDs = [x[0] for x in query]
     for _, row in data.iterrows():
@@ -98,7 +127,6 @@ def populate_player_game_stats(
         if player.UID not in UIDs:
             UIDs.append(player.UID)
             session.add(player)
-            # print(f"{player.UID}")
 
     if auto_commit:
         session.commit()
@@ -219,6 +247,7 @@ class StatcastPitching(declarative_base()):
                         self.pitcher,
                         self.at_bat_number,
                         self.pitch_number,
+                        self.release_speed,
                     ]
                 ]
             )
@@ -238,7 +267,7 @@ class PlayerLookup(declarative_base()):
     # create our own UID to keep tables' schema consitent with eachother
     id = Column(
         Integer,
-        Sequence("id_auto_seq", start=0, increment=1),
+        Sequence("id_auto_seq", start=1, increment=1),
         index=True,
         primary_key=True,
         unique=True,

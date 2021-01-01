@@ -36,7 +36,7 @@ def _main(args):
 
     _start = args.start
     _end = args.end
-    connecion = args.connection
+    connecion = create_engine('postgresql://postgres:dev@localhost:5432/dormouse')
 
     print(f"{_start}, {_end}")
     engine = create_engine(connecion)
