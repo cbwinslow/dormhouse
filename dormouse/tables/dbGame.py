@@ -42,7 +42,7 @@ def populate_game_log(year, game_type, session, auto_commit=True):
         "HomeTeam",
         "HomeLeague",
         "HomeTeamGameNumber",
-        "VistingScore",
+        "VisitingScore",
         "HomeScore",
         "NumberOuts",
         "DayNight",
@@ -52,7 +52,7 @@ def populate_game_log(year, game_type, session, auto_commit=True):
         "ParkID",
         "Attendance",
         "TimeOfGame",
-        "VistingLineScore",
+        "VisitingLineScore",
         "HomeLineScore",
         "Visiting_AB",
         "Visiting_B1",
@@ -305,6 +305,7 @@ class GameLog(declarative_base()):
     __tablename__ = "rs_gamelog"
     # TODO: Need a better primary key for game log
     id = Column(Integer, Sequence("game_id_seq"), primary_key=True)
+    UID = Column(String(50), unique=True)
     Date = Column(DateTime)
     GameSeriesNumber = Column(Integer)
     DOW = Column(String(3))
@@ -314,7 +315,7 @@ class GameLog(declarative_base()):
     HomeTeam = Column(String(3))
     HomeLeague = Column(String(2))
     HomeTeamGameNumber = Column(Integer)
-    VistingScore = Column(Integer)
+    VisitingScore = Column(Integer)
     HomeScore = Column(Integer)
     NumberOuts = Column(Integer)
     DayNight = Column(String(1))
@@ -325,7 +326,7 @@ class GameLog(declarative_base()):
     Attendance = Column(Integer)
     TimeOfGame = Column(Integer)
     # The line scores need to be parsed in a special way
-    VistingLineScore = Column(String(50))
+    VisitingLineScore = Column(String(50))
     HomeLineScore = Column(String(50))
     Visiting_AB = Column(Integer)
     Visiting_B1 = Column(Integer)
@@ -472,6 +473,25 @@ class GameLog(declarative_base()):
         for key, value in single_game_er.items():
             if key is not None and value is not None:
                 setattr(self, clean_db_col_names(key), native_dtype(value))
+
+        self.UID = self.get_uid()
+
+    def get_uid(self):
+
+        hash_str = "".join(
+            [
+                str(x)
+                for x in [
+                    self.Date,
+                    self.GameSeriesNumber,
+                    self.HomeTeam,
+                    self.VisitingTeam,
+                ]
+            ]
+        ).encode("utf-8")
+
+        return hashlib.md5(hash_str).hexdigest()
+
 
 
 class TeamLineup(declarative_base()):
