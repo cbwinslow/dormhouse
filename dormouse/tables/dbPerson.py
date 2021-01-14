@@ -290,7 +290,7 @@ class PlayerLookup(_BASE):
 
 class PlayerGameStats(_BASE):
     # From https://github.com/chadwickbureau/retrosplits/tree/master/daybyday
-    __tablename__ = "rs_single_game_stats"
+    __tablename__ = "tblSingleGamePlayerStats"
     UID = Column(String(21), primary_key=True, unique=True, index=True)
     game_key = Column(String(12))
     game_source = Column(String(3))
