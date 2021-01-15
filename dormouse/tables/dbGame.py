@@ -302,7 +302,7 @@ class GameLog(declarative_base()):
 
     """
 
-    __tablename__ = "tblGameLog"
+    __tablename__ = "game_log"
     # TODO: Need a better primary key for game log
     id = Column(Integer, Sequence("game_id_seq"), primary_key=True)
     UID = Column(String(50), unique=True)
@@ -501,7 +501,7 @@ class TeamLineup(declarative_base()):
     UID is md5 hash of GameLog.Date and GameLog.GameSeriesNumber and self.team
     """
 
-    __tablename__ = "tblTeamLineups"
+    __tablename__ = "team_lineups"
     UID = Column(String(32), index=True, primary_key=True, unique=True)
     parkid = Column(String(5))
     team = String(3)
@@ -583,7 +583,7 @@ class TeamRoster(declarative_base()):
     Table for storing current and historic roster data
     """
 
-    __tablename__ = "tblTeamRosters"
+    __tablename__ = "team_rosters"
     UID = Column(String(32), index=True, primary_key=True, unique=True)
     team = Column(String(3))
     year = Column(Integer)

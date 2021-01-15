@@ -193,7 +193,7 @@ class Teams(declarative_base()):
     Contains all relevant data about a given team
     """
 
-    __tablename__ = "tblTeams"
+    __tablename__ = "teams"
 
     UID = Column(String(32), index=True, primary_key=True, unique=True)
     mlbam_abbrev = Column(String(3))

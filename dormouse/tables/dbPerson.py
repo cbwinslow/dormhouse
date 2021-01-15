@@ -138,7 +138,7 @@ class StatcastPitching(_BASE):
     Statcast data for a single pitch
     """
 
-    __tablename__ = "tblStatcastPitching"
+    __tablename__ = "statcast_pitching"
     # id = Column(Integer, Sequence("event_id_seq"), primary_key=True)
     UID = Column(String(32), index=True, primary_key=True, unique=True)
     pitch_type = Column(String(2))
@@ -263,7 +263,7 @@ class PlayerLookup(_BASE):
     Player lookup table provided by chadwick b.
     """
 
-    __tablename__ = "tblPlayerLookup"
+    __tablename__ = "player_lookup"
     # Even though key_person is unique, and is part our our UID hashing, we will
     # create our own UID to keep tables' schema consitent with eachother
     id = Column(
@@ -290,7 +290,7 @@ class PlayerLookup(_BASE):
 
 class PlayerGameStats(_BASE):
     # From https://github.com/chadwickbureau/retrosplits/tree/master/daybyday
-    __tablename__ = "tblSingleGamePlayerStats"
+    __tablename__ = "single_game_player_stats"
     UID = Column(String(21), primary_key=True, unique=True, index=True)
     game_key = Column(String(12))
     game_source = Column(String(3))
@@ -482,7 +482,7 @@ class AsOfDatePlayerGameStats(_BASE):
     """"Calculate as of date player stats for quick retrieval
     """"
 
-    __tablename__ = "tblAsOfDateStats"
+    __tablename__ = "as_of_date_stats"
     UID= Column(Integer)
     season = Column(Integer)
     asof_date = Column(DateTime)
